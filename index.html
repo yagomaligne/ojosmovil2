@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ojos que Siguen el Cursor</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #c6c6cb;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 1920px; /* Ajusta el tamaño según tu imagen */
+            height: auto; /* Ajusta el tamaño según tu imagen */
+            aspect-ratio: 4 / 5; /* Mantén la proporción de la cara */
+        }
+
+        .face {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Mantiene la proporción de la imagen */
+            z-index: 1;
+        }
+
+        .eye {
+            position: absolute;
+            width: 18%; /* Escalado relativo al contenedor */
+            aspect-ratio: 1 / 1; /* Mantén los ojos perfectamente circulares */
+            background-image: url('ojo-rojo1.png'); /* Cambia por la ruta de tu imagen de ojo */
+            background-repeat: no-repeat;
+            background-size: contain;
+            border-radius: 50%;
+            pointer-events: none; /* Para que el cursor no interfiera con el ojo */
+            overflow: visible; /* Asegura que no se recorten partes de la imagen */
+        }
+
+            .eye.left {
+                left: 20%; /* Posición relativa al ancho del contenedor */
+                top: 34%; /* Posición relativa al alto del contenedor */
+            }
+
+            .eye.right {
+                right: 18%; /* Posición relativa al ancho del contenedor */
+                top: 35%; /* Posición relativa al alto del contenedor */
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Imagen de la cara con transparencias -->
+        <img src="POMPA-LONG-noeye.png" alt="Cara" class="face"> <!-- Cambia por la ruta de tu imagen de cara -->
+        <!-- Ojos dinámicos -->
+        <div class="eye left"></div>
+        <div class="eye right"></div>
+    </div>
+
+    <script>const eyes = document.querySelectorAll('.eye');
+        const container = document.querySelector('.container');
+
+        function moveEyes(offsetX, offsetY) {
+            eyes.forEach(eye => {
+                eye.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        }
+
+        function handleMouseMove(e) {
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            eyes.forEach(eye => {
+                const eyeRect = eye.getBoundingClientRect();
+                const eyeX = eyeRect.left + eyeRect.width / 2 - rect.left;
+                const eyeY = eyeRect.top + eyeRect.height / 2 - rect.top;
+
+                const angle = Math.atan2(mouseY - eyeY, mouseX - eyeX);
+                const distance = Math.min(rect.width * 0.1, Math.hypot(mouseX - eyeX, mouseY - eyeY)); // Aumenta el rango de movimiento
+
+                const offsetX = Math.cos(angle) * distance;
+                const offsetY = Math.sin(angle) * distance;
+
+                moveEyes(offsetX, offsetY);
+            });
+        }
+
+        function handleDeviceOrientation(event) {
+            const gamma = event.gamma; // Inclinación izquierda/derecha (-90 a 90)
+            const beta = event.beta; // Inclinación adelante/atrás (-180 a 180)
+
+            const maxOffset = 20; // Define cuánto pueden moverse los ojos
+            const offsetX = (gamma / 45) * maxOffset; // Ajusta el movimiento lateral
+            const offsetY = (beta / 45) * maxOffset; // Ajusta el movimiento vertical
+
+            moveEyes(offsetX, offsetY);
+        }
+
+        // Detecta si es móvil y usa el giroscopio en vez del mouse
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener("deviceorientation", handleDeviceOrientation);
+        } else {
+            container.addEventListener("mousemove", handleMouseMove);
+        }</script>
+</body>
+</html>
