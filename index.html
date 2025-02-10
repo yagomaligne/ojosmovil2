@@ -64,7 +64,8 @@
         <div class="eye right"></div>
     </div>
 
-    <script>const eyes = document.querySelectorAll('.eye');
+<script>
+        const eyes = document.querySelectorAll('.eye');
         const container = document.querySelector('.container');
 
         function moveEyes(offsetX, offsetY) {
@@ -96,19 +97,47 @@
         function handleDeviceOrientation(event) {
             const gamma = event.gamma; // Inclinación izquierda/derecha (-90 a 90)
             const beta = event.beta; // Inclinación adelante/atrás (-180 a 180)
-
+            
             const maxOffset = 20; // Define cuánto pueden moverse los ojos
             const offsetX = (gamma / 45) * maxOffset; // Ajusta el movimiento lateral
             const offsetY = (beta / 45) * maxOffset; // Ajusta el movimiento vertical
-
+            
             moveEyes(offsetX, offsetY);
         }
 
-        // Detecta si es móvil y usa el giroscopio en vez del mouse
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener("deviceorientation", handleDeviceOrientation);
+        function requestGyroscopePermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener("deviceorientation", handleDeviceOrientation);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener("deviceorientation", handleDeviceOrientation);
+            }
+        }
+
+        // Detecta si es móvil y solicita permiso para el giroscopio
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+            const permissionButton = document.createElement("button");
+            permissionButton.textContent = "Activar Giroscopio";
+            permissionButton.style.position = "absolute";
+            permissionButton.style.top = "10px";
+            permissionButton.style.left = "50%";
+            permissionButton.style.transform = "translateX(-50%)";
+            permissionButton.style.padding = "10px 20px";
+            permissionButton.style.fontSize = "16px";
+            document.body.appendChild(permissionButton);
+
+            permissionButton.addEventListener("click", () => {
+                requestGyroscopePermission();
+                permissionButton.remove();
+            });
         } else {
             container.addEventListener("mousemove", handleMouseMove);
-        }</script>
+        }
+    </script>
 </body>
 </html>
